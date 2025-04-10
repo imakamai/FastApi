@@ -3,7 +3,6 @@ from functools import lru_cache
 import motor.motor_asyncio
 import os
 import hashlib
-import pypdf
 from  .config import settings
 from passlib.context import CryptContext
 import jwt
@@ -67,6 +66,7 @@ async def about(tsttoken:str):
             "app_name": settings.app_name,
             "app_version": settings.app_version,
             "app_decription": settings.app_decription,
+            "app-test": "test"
         }
 
 
