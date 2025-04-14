@@ -1,8 +1,24 @@
+from click import prompt
+from openai import responses
 from sentence_transformers import SentenceTransformer
 import chromadb
 from pypdf import PdfReader
 import uuid
-import pprint
+from openai import OpenAI
+from config import OPENAI_API_KEY
+from langchain_openai import ChatOpenAI
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import ChatPromptTemplate
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key = os.environ.get("OPENAI_API_KEY"),
+)
 
 reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
 number_of_pages = len(reader.pages)
@@ -10,8 +26,8 @@ page = reader.pages[0]
 text = page.extract_text()
 print(text.split(".\n"))
 
-client = chromadb.PersistentClient(path="D:\\Python\\FastAPI Bridge Project\\chromadb")
 
+client = chromadb.PersistentClient(path="D:\\Python\\FastAPI Bridge Project\\chromadb")
 
 model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
 
@@ -30,8 +46,12 @@ for text in data:
     ids.append(str(uuid.uuid4()))
     i =+ 1
 
-
-pet_collection_emb = client.get_collection("pet_collection_emb")
+collection_name = "pet_collection_emb"
+try:
+    pet_collection_emb = client.get_collection(collection_name)
+except:
+    pet_collection_emb = client.create_collection(collection_name)
+# pet_collection_emb = client.get_collection("pet_collection_emb")
 #
 # pet_collection_emb.add(
 #     documents=documents,
@@ -40,32 +60,59 @@ pet_collection_emb = client.get_collection("pet_collection_emb")
 #     ids=ids
 # )
 
+
 query = "Which univerzity she finished?"
+
 input_em = model.encode(query).tolist()
+
 
 results = pet_collection_emb.query(
     query_embeddings=[input_em],
     n_results=2
 )
-pprint.pprint(results)
+
+retrieved_docs = "\n".join(results['documents'][0])
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful assistant that answers questions based on provided context."),
+        ("human", f"Context:\n{retrieved_docs}\n\nQuestion: {query}")
+    ]
+)
+
+formatted_prompt = prompt.format_messages()
+
+chat = ChatOpenAI(model_name="gtp-3.5-turbo")
+
+response = chat(formatted_prompt)
+print("\n Answer:")
+print(response.content)
+# pprint.pprint(results)
 
 
-from pdfquery import pdfquery
+# os.environ["OPENAI_API_KEY"] = getpass.getpass()
 
-import re
-
-
-
-#use four space as paragraph delimiter to convert the text into list of paragraphs.
-# print (re.split('\s{4,}',text))
-
-# pdf = pdfquery.PDFQuery('customers.pdf')
-# pdf.load()
+# llm = ChatOpenAI(model="gpt-4o")
 #
 #
-# #convert the pdf to XML
-# pdf.tree.write('customers.xml', pretty_print = True)
-# pdf
-# reader = pypdf.PdfReader('Cover letter programming YouTestMe.pdf')
-# print(len(reader.pages))
-# print(reader.pages[0].extract_text())
+#
+# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+# splits = text_splitter.split_documents(text)
+# vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
+#
+# retriever = vectorstore.as_retriever()
+#
+# prompt = ChatPromptTemplate.from_messages(
+#     [
+#         ("system", splits),
+#         ("human", "{input}"),
+#     ]
+# )
+#
+#
+# question_answer_chain = create_stuff_documents_chain(llm, prompt)
+# rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+#
+# results = rag_chain.invoke({"input": "What was Nike's revenue in 2023?"})
+#
+# print(results)
