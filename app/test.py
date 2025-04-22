@@ -15,6 +15,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 import os
 from openai import OpenAI
+from rouge_score import rouge_scorer
 
 client = OpenAI(
     api_key = os.environ.get("OPENAI_API_KEY"),
@@ -87,6 +88,19 @@ chat = ChatOpenAI(model_name="gtp-3.5-turbo")
 response = chat(formatted_prompt)
 print("\n Answer:")
 print(response.content)
+
+# ROUGE metric
+reference_answer = "She finished university at the University of California."  # <-- zameni pravim očekivanim odgovorom
+predicted_answer = response.content.strip()
+
+scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
+scores = scorer.score(reference_answer, predicted_answer)
+
+print("\n🧪 ROUGE Evaluation:")
+for metric, score in scores.items():
+    print(f"{metric}: Precision={score.precision:.4f}, Recall={score.recall:.4f}, F1={score.fmeasure:.4f}")
+
+
 # pprint.pprint(results)
 
 
