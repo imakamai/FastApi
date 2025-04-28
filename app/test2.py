@@ -66,11 +66,8 @@ def generate_prompt(context, question):
 
 # Define the user query
 #Ispravi Context
-query = """Context: I am writing to express my interest in the QA Intern position at
-YouTestMe. As a dedicated student in my final year at the University
-of Metropolitan with a passion for software development and
-problem-solving, I believe that my skills and eagerness to learn
-align well with the requirements for this role. Question:Which programming language she has experience ?"""
+query = """ Context: Srpski jezik je standardizovana varijanta srpskohrvatskoga jezika kojom uglavnom govore Srbi. Službeni je jezik u Srbiji, jedan od tri službena jezika Bosne i Hercegovine i suslužbeni u Crnoj Gori i na Kosovu. Priznat je kao manjinski jezik u Hrvatskoj, Severnoj Makedoniji, Rumuniji, Mađarskoj, Slovačkoj i Češkoj.
+Question:Ko govori srpski?"""
 # How to change battery? Explane in details.
 # How to reduce the battery consumption?
 # Which university did she finished?
@@ -78,6 +75,11 @@ align well with the requirements for this role. Question:Which programming langu
 # Which position I am applying?
 # Which program language she has experience ?
 # Which programming language she has experience ?
+# Context: I am writing to express my interest in the QA Intern position at
+# YouTestMe. As a dedicated student in my final year at the University
+# of Metropolitan with a passion for software development and
+# problem-solving, I believe that my skills and eagerness to learn
+# align well with the requirements for this role.
 
 # Create embedding for the query
 input_em = model.encode(query).tolist()
