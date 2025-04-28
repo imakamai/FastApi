@@ -15,11 +15,11 @@ from PyPDF2 import PdfReader
 import chromadb
 from sentence_transformers import SentenceTransformer
 from chromadb.utils import embedding_functions
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
 import torch
 
 # Load PDF file
-reader = PdfReader("C:\\Users\\imakamai\\Desktop\\SM.pdf")
+reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
 number_of_pages = len(reader.pages)
 page = reader.pages[0]
 text = page.extract_text()
@@ -61,15 +61,21 @@ except:
 
 # Define a method for generating a prompt
 def generate_prompt(context, question):
+    print(context)
     return f"Context:\n{context}\n\nQuestion: {question}"
 
 # Define the user query
-query = "How much is internal storage?"
+query = """Context: I am writing to express my interest in the QA Intern position at
+YouTestMe. As a dedicated student in my final year at the University
+of Metropolitan with a passion for software development and
+problem-solving, I believe that my skills and eagerness to learn
+align well with the requirements for this role. Question:Which university she is studying?"""
 # How to change battery? Explane in details.
 # How to reduce the battery consumption?
 # Which university did she finished?
 # How to defectory reset?
 # How to insert an SD Card?
+# How much is internal storage?
 
 # Create embedding for the query
 input_em = model.encode(query).tolist()
@@ -87,8 +93,11 @@ retrieved_docs = "\n".join(results['documents'][0])
 prompt = generate_prompt(retrieved_docs, query)
 
 # Load a lightweight QA model locally
-tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
-qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
+tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2",
+                                          trust_remote_code=True)
+qa_model = AutoModelForCausalLM.from_pretrained("microsoft/phi-2",
+                                             torch_dtype=torch.float32,
+                                             trust_remote_code=True)
 
 # Tokenize and run inference
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
