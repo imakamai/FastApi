@@ -17,6 +17,7 @@ from sentence_transformers import SentenceTransformer
 from chromadb.utils import embedding_functions
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
 import torch
+from rouge import RougeMetricsEnglish
 
 # Load PDF file
 reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
@@ -109,3 +110,10 @@ answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
 # Print the final answer
 print("\nAnswer:")
 print(answer)
+
+rouge = RougeMetricsEnglish(1)
+precision, recall, fscore = rouge("She has experience in QA internal.",
+                                   "She has experience in QA internal and work for 4 years.")
+print(precision,recall,fscore)
+
+
