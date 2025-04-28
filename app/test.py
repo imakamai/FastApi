@@ -2,7 +2,7 @@ import os
 import chromadb
 import uuid
 
-from nltk import ngrams0
+from nltk import ngrams
 from sentence_transformers import SentenceTransformer
 from pypdf import PdfReader
 from langchain_openai import ChatOpenAI

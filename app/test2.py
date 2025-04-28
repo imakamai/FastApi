@@ -61,21 +61,22 @@ except:
 
 # Define a method for generating a prompt
 def generate_prompt(context, question):
-    print(context)
     return f"Context:\n{context}\n\nQuestion: {question}"
 
 # Define the user query
+#Ispravi Context
 query = """Context: I am writing to express my interest in the QA Intern position at
 YouTestMe. As a dedicated student in my final year at the University
 of Metropolitan with a passion for software development and
 problem-solving, I believe that my skills and eagerness to learn
-align well with the requirements for this role. Question:Which university she is studying?"""
+align well with the requirements for this role. Question:Which programming language she has experience ?"""
 # How to change battery? Explane in details.
 # How to reduce the battery consumption?
 # Which university did she finished?
 # How to defectory reset?
-# How to insert an SD Card?
-# How much is internal storage?
+# Which position I am applying?
+# Which program language she has experience ?
+# Which programming language she has experience ?
 
 # Create embedding for the query
 input_em = model.encode(query).tolist()
@@ -93,11 +94,8 @@ retrieved_docs = "\n".join(results['documents'][0])
 prompt = generate_prompt(retrieved_docs, query)
 
 # Load a lightweight QA model locally
-tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2",
-                                          trust_remote_code=True)
-qa_model = AutoModelForCausalLM.from_pretrained("microsoft/phi-2",
-                                             torch_dtype=torch.float32,
-                                             trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
+qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
 
 # Tokenize and run inference
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
