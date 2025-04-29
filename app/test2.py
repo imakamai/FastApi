@@ -7,8 +7,6 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 
-
-
 import os
 import uuid
 from PyPDF2 import PdfReader
@@ -19,21 +17,18 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausa
 import torch
 from rouge import RougeMetricsEnglish
 
-# Load PDF file
+
 reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
 number_of_pages = len(reader.pages)
 page = reader.pages[0]
 text = page.extract_text()
-# Split text into chunks
+
 data = text.split(".\n")
 
-# Initialize ChromaDB client
 client = chromadb.PersistentClient(path="D:\\Python\\FastAPI Bridge Project\\chromadb")
 
-# Load sentence transformer model for embeddings
 model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
 
-# Prepare documents, embeddings, metadata, and IDs
 documents = []
 embeddings = []
 metadatas = []
@@ -45,29 +40,38 @@ for text in data:
     metadatas.append({"metadata": text})
     ids.append(str(uuid.uuid4()))
 
-# Create or get the collection
+
 collection_name = "pet_collection_emb"
 try:
     pet_collection_emb = client.get_collection(collection_name)
 except:
     pet_collection_emb = client.create_collection(collection_name)
 
-# (Optional) Uncomment if you want to add documents again
-# pet_collection_emb.add(
-#     documents=documents,
-#     embeddings=embeddings,
-#     metadatas=metadatas,
-#     ids=ids
-# )
+# def get_context_from_question(question, collection, model, n_results=3):
+#     question_embedding = model.encode(question).tolist()
+#     results = collection.query(
+#         query_embeddings=[question_embedding],
+#         n_results=n_results
+#     )
+#     context_chunks = results["documents"][0]
+#     return "\n".join(context_chunks)
+#
+# def generate_prompt_from_pdf_question(question):
+#     context = get_context_from_question(question, pet_collection_emb, model)
+#     return f"Context:\n{context}\n\nQuestion: {question}"
 
-# Define a method for generating a prompt
-def generate_prompt(context, question):
-    return f"Context:\n{context}\n\nQuestion: {question}"
 
-# Define the user query
+# def generate_prompt_from_pdf(file_path, question):
+#     context = extract_text_from_pdf(file_path)
+#     return f"Context:\n{context}\n\nQuestion: {question}"
+# def generate_prompt(context, question):
+#     return f"Context:\n{context}\n\nQuestion: {question}"
+
+# def generate_prompt(context, question):
+#     return f"Context:\n{context}\n\nQuestion: {question}"
+
 #Ispravi Context
-query = """ Context: Srpski jezik je standardizovana varijanta srpskohrvatskoga jezika kojom uglavnom govore Srbi. Službeni je jezik u Srbiji, jedan od tri službena jezika Bosne i Hercegovine i suslužbeni u Crnoj Gori i na Kosovu. Priznat je kao manjinski jezik u Hrvatskoj, Severnoj Makedoniji, Rumuniji, Mađarskoj, Slovačkoj i Češkoj.
-Question:Ko govori srpski?"""
+query = "Which program language she has experience ?"
 # How to change battery? Explane in details.
 # How to reduce the battery consumption?
 # Which university did she finished?
@@ -81,35 +85,36 @@ Question:Ko govori srpski?"""
 # problem-solving, I believe that my skills and eagerness to learn
 # align well with the requirements for this role.
 
-# Create embedding for the query
+#""" Context: Srpski jezik je standardizovana varijanta srpskohrvatskoga jezika kojom uglavnom govore Srbi. Službeni je jezik u Srbiji, jedan od tri službena jezika Bosne i Hercegovine i suslužbeni u Crnoj Gori i na Kosovu. Priznat je kao manjinski jezik u Hrvatskoj, Severnoj Makedoniji, Rumuniji, Mađarskoj, Slovačkoj i Češkoj.
+#Question:Ko govori srpski?"""
+
 input_em = model.encode(query).tolist()
 
-# Retrieve similar documents
 results = pet_collection_emb.query(
     query_embeddings=[input_em],
     n_results=2
 )
 
-# Join retrieved documents
+
 retrieved_docs = "\n".join(results['documents'][0])
 
-# Generate prompt for the local model
-prompt = generate_prompt(retrieved_docs, query)
 
-# Load a lightweight QA model locally
+prompt = generate_prompt_from_pdf_question(retrieved_docs, query)
+
+
 tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
 qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
 
-# Tokenize and run inference
+
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
 
 with torch.no_grad():
     outputs = qa_model.generate(**inputs, max_length=200)
 
-# Decode the generated answer
+
 answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-# Print the final answer
+
 print("\nAnswer:")
 print(answer)
 
