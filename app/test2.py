@@ -15,7 +15,6 @@ from sentence_transformers import SentenceTransformer
 from chromadb.utils import embedding_functions
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoModelForCausalLM
 import torch
-from rouge import RougeMetricsEnglish
 
 
 directoryPath = r""
