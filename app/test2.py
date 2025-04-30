@@ -18,6 +18,7 @@ import torch
 from rouge import RougeMetricsEnglish
 
 
+directoryPath = r""
 reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
 number_of_pages = len(reader.pages)
 page = reader.pages[0]
@@ -28,6 +29,11 @@ data = text.split(".\n")
 client = chromadb.PersistentClient(path="D:\\Python\\FastAPI Bridge Project\\chromadb")
 
 model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
+
+check = 0
+
+search_term = ""
+check = 0
 
 documents = []
 embeddings = []
@@ -47,28 +53,35 @@ try:
 except:
     pet_collection_emb = client.create_collection(collection_name)
 
-# def get_context_from_question(question, collection, model, n_results=3):
-#     question_embedding = model.encode(question).tolist()
-#     results = collection.query(
-#         query_embeddings=[question_embedding],
-#         n_results=n_results
-#     )
-#     context_chunks = results["documents"][0]
-#     return "\n".join(context_chunks)
+
+
+search_term = input("Unesite pojam koji želite da pretražite: ").lower()
+found = False
+
+for i, sentence in enumerate(data):
+    if search_term in sentence.lower():
+        print(f"Pojam je pronađen u rečenici {i + 1}: {sentence.strip()}")
+        found = True
+
+if not found:
+    print("Nema poklapanja sa zadatim tekstom.")
+
+# fsearch_term = ""
+# check = 0
 #
-# def generate_prompt_from_pdf_question(question):
-#     context = get_context_from_question(question, pet_collection_emb, model)
-#     return f"Context:\n{context}\n\nQuestion: {question}"
+# for i in range(number_of_pages):
+#     page = reader.pages[i]
+#     page_text = page.extract_text()
+#     if page_text and search_term.lower() in page_text.lower():
+#         print(f"File: CoverLetter.pdf, Page: {i+1}")
+#         check += 1
+#
+# if check == 0:
+#     print("No matches found for the given text.")
 
 
-# def generate_prompt_from_pdf(file_path, question):
-#     context = extract_text_from_pdf(file_path)
-#     return f"Context:\n{context}\n\nQuestion: {question}"
-# def generate_prompt(context, question):
-#     return f"Context:\n{context}\n\nQuestion: {question}"
-
-# def generate_prompt(context, question):
-#     return f"Context:\n{context}\n\nQuestion: {question}"
+def generate_prompt(context, question):
+    return f"Context:\n{context}\n\nQuestion: {question}"
 
 #Ispravi Context
 query = "Which program language she has experience ?"
@@ -98,8 +111,7 @@ results = pet_collection_emb.query(
 
 retrieved_docs = "\n".join(results['documents'][0])
 
-
-prompt = generate_prompt_from_pdf_question(retrieved_docs, query)
+prompt = generate_prompt(retrieved_docs, query)
 
 
 tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
