@@ -46,7 +46,7 @@ pet_collection_emb.add(
 )
 
 
-query = input("Postavi pitanje na engleskom: ")
+query = input("Ask a question in English: ")
 
 
 input_em = model.encode(query).tolist()
