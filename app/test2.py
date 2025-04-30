@@ -129,9 +129,6 @@ answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print("\nAnswer:")
 print(answer)
 
-rouge = RougeMetricsEnglish(1)
-precision, recall, fscore = rouge("She has experience in QA internal.",
-                                   "She has experience in QA internal and work for 4 years.")
-print(precision,recall,fscore)
+
 
 
