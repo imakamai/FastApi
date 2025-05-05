@@ -79,9 +79,7 @@ qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
 
 with torch.no_grad():
-    # outputs = qa_model.generate(**inputs, max_length=200)
-    outputs = qa_model(**inputs, max_length=512, min_length=100,
-                       length_penalty=0.8, early_stopping=False, num_beams=4)
+    outputs = qa_model.generate(**inputs, max_length=512, min_length=100, length_penalty=1.0, early_stopping=False)
 
 answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -91,10 +89,7 @@ print(answer)
 # ============================================
 # Rouge metrics
 # ============================================
-reference = retrieved_docs
-rouge = RougeMetricsEnglish(1)
-precision, recall, fscore = rouge(answer, reference, [2])
-print(f"Precision: {precision}, Recall: {recall}, F1: {fscore}")
+
 # print(reference)
 
 # rouge = RougeMetricsEnglish(1)
@@ -102,7 +97,7 @@ print(f"Precision: {precision}, Recall: {recall}, F1: {fscore}")
 #                                    "You can turn Bluetooth on or off in Settings > Connections > Bluetooth.")
 # print(precision,recall,fscore)
 
-# rouge = RougeMetricsEnglish(1)
-# precision, recall, fscore = rouge("She has experience in QA internal.",
-#                                    "She has experience in QA internal and work for 4 years.")
-# print(precision,recall,fscore)
+rouge = RougeMetricsEnglish(1)
+precision, recall, fscore = rouge("She has experience in QA internal.",
+                                   "She has experience in QA internal and work for 4 years.")
+print(precision,recall,fscore)
