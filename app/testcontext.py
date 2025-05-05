@@ -5,11 +5,14 @@ import chromadb
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
 from rougeEnglish import RougeMetricsEnglish
-# from rouge import RougeMetrics
 
+# ============================================
+# 
+# ============================================
 
-reader = PdfReader("C:\\Users\\imakamai\\Desktop\\CoverLetter.pdf")
+reader = PdfReader("C:\\Users\\imakamai\\Desktop\\SM.pdf")
 text = ""
 for page in reader.pages:
     extracted = page.extract_text()
@@ -73,6 +76,14 @@ answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 print("\nAnswer:")
 print(answer)
+
+# ----- Rouge Metrics -----
+# refence_answer = results['documents'][0][0]
+#
+# rouges = RougeMetricsEnglish(1)
+# precision, recall, fscore = rouges(answer, refence_answer)
+# # print("\nROUGE Evalution vs document: ")
+# print("Precision: ", precision, "Recall: ", recall, "F-score: ", fscore)
 
 rouge = RougeMetricsEnglish(1)
 precision, recall, fscore = rouge("She has experience in QA internal.",
