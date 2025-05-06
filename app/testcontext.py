@@ -58,33 +58,54 @@ print(f"[INFO] {len(documents)} documents added to ChromaDB.")
 # ============================================
 # Asking question and generate answer
 # ============================================
-query = input("Ask a question in English: ")
+
+# ----- Model is strong -----
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-base")
+# ----- Model isn't strong -----
+# tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
+# qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
 
 
-input_em = model.encode(query).tolist()
-results = pet_collection_emb.query(query_embeddings=[input_em], n_results=5)
-
-
-retrieved_docs = "\n".join(results['documents'][0])
 
 def generate_prompt(context, question):
     return f"Context:\n{context}\n\nQuestion: {question}"
 
-prompt = generate_prompt(retrieved_docs, query)
+# ----- Interactive chat -----
+print("\n[INFO] Chat is ready. Type your question or type 'exit' to quit.\n")
 
+while True:
+    query = input("Ask a question in English: ")
+    if query.lower() in ["exit", "quit"]:
+        print("Goodbye.")
+        break
 
-tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
-qa_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
+    input_em = model.encode(query).tolist()
+    results = pet_collection_emb.query(query_embeddings=[input_em], n_results=3)
 
-inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+    if not results['documents'][0]:
+        print("No documents found.")
+        continue
 
-with torch.no_grad():
-    outputs = qa_model.generate(**inputs, max_length=512, min_length=100, length_penalty=1.0, early_stopping=False)
+    retrieved_docs = "\n".join(results['documents'][0])
 
-answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    prompt = generate_prompt(retrieved_docs, query)
 
-print("\nAnswer:")
-print(answer)
+    inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+
+    with torch.no_grad():
+        outputs = qa_model.generate(**inputs, max_length=200)
+
+    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    if "I couldn't find anything" in answer or len(answer.strip()) < 20 :
+        print("No answer.")
+    else:
+        print("\nAnswer:")
+        print(answer)
+        print("\n")
+    # print("\nAnswer:")
+    # print(answer)
 
 # ============================================
 # Rouge metrics
